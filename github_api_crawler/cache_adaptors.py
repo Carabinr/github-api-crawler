@@ -1,6 +1,9 @@
 from abc import ABC, abstractmethod
+from typing import Union
+
 from .exceptions import GithubCacheAdapterException
 import redis
+import pickle
 
 
 class AbstractCacheAdapter(ABC):
@@ -24,11 +27,14 @@ class RedisCacheAdapter(AbstractCacheAdapter):
 
         self.cache = redis.from_url(url)
 
-    def getval(self, key:str):
-        return self.cache.get(key)
+    def getval(self, key:str) -> Union[str, None]:
+        val = self.cache.get(key)
+        out = pickle.loads(val) if val else None
 
-    def setval(self, key:str, val:str) -> None:
-        self.cache.set(key, val)
+        return out
+
+    def setval(self, key:str, val: str) -> None:
+        self.cache.set(key, pickle.dumps(val))
 
 
 class MemoryCacheAdapter(AbstractCacheAdapter):
