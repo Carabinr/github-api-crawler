@@ -69,10 +69,13 @@ class Github(object):
             'X-RateLimit-Reset',
         ]
 
-        self.cache.setval('time-left', self._epoch_to_human(r.headers['X-RateLimit-Reset']))
+        reset_limit = r.headers.get('X-RateLimit-Reset', None)
+        if reset_limit:
+            self.cache.setval('time-left', self._epoch_to_human(reset_limit))
 
         for _ in rate_limits:
-            self.cache.setval(_, r.headers[_])
+            if r.headers.get(_):
+                self.cache.setval(_, r.headers[_])
 
     def _get(self, target:str) -> Union[List[Dict], Dict]:
         """
